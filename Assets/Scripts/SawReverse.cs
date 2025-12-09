@@ -9,11 +9,9 @@ public class SawReverse : MonoBehaviour
     public float speed;
     public float moveTime;
 
-    private bool dirRight = false;
+    private bool dirRight = false; //Colocando como falso para ir para a esquerda
     private float timer;
 
-
-    // Update is called once per frame
     void Update()
     {
         if(dirRight)

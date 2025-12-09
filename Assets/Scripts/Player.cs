@@ -96,6 +96,7 @@ public class Player : MonoBehaviour
             anim.SetBool("jump", false);
         }
 
+        //Adicionando colisioes com objetos para perca de vida
         if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Saw"))
         {
 
@@ -114,7 +115,7 @@ public class Player : MonoBehaviour
         }
     }
 
-
+    //Danos 
     void TakeDamage(int damageAmount)
     {
         currentHealth -= damageAmount;
@@ -131,6 +132,7 @@ public class Player : MonoBehaviour
         }
     }
 
+    //Vidas
     void UpdateHealthUI()
     {
 
@@ -155,7 +157,7 @@ public class Player : MonoBehaviour
             GameController.instance.ShowGameOver();
         }
         
-        // Desativa o personagem
+        // Desativa o personagem 
         gameObject.SetActive(false);
     }
 
