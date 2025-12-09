@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-
+    [Header("Movimento")]
     public float Speed;
     public float JumpForce;
     private Rigidbody2D rig;
@@ -14,12 +15,21 @@ public class Player : MonoBehaviour
 
     private Animator anim;
 
+    [Header("Sistema de Vida")]
+    public int maxHealth = 3;
+    public int currentHealth;
+    public Image[] hearts;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    private bool isInvincible = false;
+
     void Start()
     {
         rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+
+        currentHealth = maxHealth;
+        UpdateHealthUI();
 
         GameObject start = GameObject.FindWithTag("StartCheckpoint");
         if (start != null)
@@ -28,7 +38,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         Move();
@@ -44,10 +53,9 @@ public class Player : MonoBehaviour
         {
             anim.SetBool("walk", true);
             transform.eulerAngles = new Vector3(0f, 0f, 0f);
-            
         }
 
-        if(Input.GetAxisRaw("Horizontal") < 0f)
+        if (Input.GetAxisRaw("Horizontal") < 0f)
         {
             anim.SetBool("walk", true);
             transform.eulerAngles = new Vector3(0f, 180f, 0f);
@@ -56,14 +64,12 @@ public class Player : MonoBehaviour
         if (Input.GetAxisRaw("Horizontal") == 0f)
         {
             anim.SetBool("walk", false);
-
         }
-
     }
 
     void Jump()
     {
-        if(Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump"))
         {
             if (!isJumping)
             {
@@ -79,28 +85,24 @@ public class Player : MonoBehaviour
                     doubleJumping = false;
                 }
             }
-            
         }
     }
 
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.layer == 8)
-        {
+        if (collision.gameObject.layer == 8) 
             isJumping = false;
             anim.SetBool("jump", false);
         }
 
-        if(collision.gameObject.tag == "Spike")
+        if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Saw"))
         {
-            GameController.instance.ShowGameOver();
-            Destroy(gameObject);
-        }
 
-          if(collision.gameObject.tag == "Saw")
-        {
-            GameController.instance.ShowGameOver();
-            Destroy(gameObject);
+            if (!isInvincible)
+            {
+                TakeDamage(1);
+            }
         }
     }
 
@@ -110,5 +112,69 @@ public class Player : MonoBehaviour
         {
             isJumping = true;
         }
+    }
+
+
+    void TakeDamage(int damageAmount)
+    {
+        currentHealth -= damageAmount;
+        UpdateHealthUI();
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+        else
+        {
+
+            StartCoroutine(BecomeInvincible());
+        }
+    }
+
+    void UpdateHealthUI()
+    {
+
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            if (i < currentHealth)
+            {
+                hearts[i].enabled = true;
+            }
+            else
+            {
+                hearts[i].enabled = false;
+            }
+        }
+    }
+
+    void Die()
+    {
+
+        if (GameController.instance != null)
+        {
+            GameController.instance.ShowGameOver();
+        }
+        
+        // Desativa o personagem
+        gameObject.SetActive(false);
+    }
+
+    IEnumerator BecomeInvincible()
+    {
+        isInvincible = true;
+        Debug.Log("Ficou invencível!");
+
+        for (int i = 0; i < 5; i++)
+        {
+            GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
+            yield return new WaitForSeconds(0.2f);
+            
+            // Volta ao normal (Alpha 1)
+            GetComponent<SpriteRenderer>().color = Color.white;
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        isInvincible = false;
+        Debug.Log("Acabou a invencibilidade.");
     }
 }
